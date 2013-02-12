@@ -3,7 +3,8 @@ define puppet_certificate (
   $ssldir        = $::settings::ssldir,
   $ca_location   = 'remote',
   $mode          = 'agent',
-  $dns_alt_names = undef
+  $dns_alt_names = undef,
+  $ca_server     = hiera('puppet_certificate::ca_server', undef),
 ) {
 
   # Depending on whether the CA is local or remote, choose whether to sign
@@ -26,13 +27,18 @@ define puppet_certificate (
     }
   }
 
-  $request_file    = "$ssldir/certificate_requests/$certname.pem"
-  $key_file        = "$ssldir/private_keys/$certname.pem"
-  $cert_file       = "$ssldir/certs/$certname.pem"
-  $get_options     = "--ca-location $ca_location --mode $get_mode $certname"
-  $request_options = $dns_alt_names ? {
-    undef   => "--ca-location $ca_location --mode $mode $certname",
-    default => "--ca-location $ca_location --mode $mode --dns-alt-names $dns_alt_names $certname",
+  $ca_server_options = $ca_server ? {
+    default => "--ca_server $ca_server",
+    undef   => '',
+  }
+  $request_file      = "$ssldir/certificate_requests/$certname.pem"
+  $key_file          = "$ssldir/private_keys/$certname.pem"
+  $cert_file         = "$ssldir/certs/$certname.pem"
+  $common_options    = "--ca-location $ca_location $ca_server_options --certname $::clientcert"
+  $get_options       = "$common_options --mode $get_mode $certname"
+  $request_options   = $dns_alt_names ? {
+    undef   => "$common_options --mode $mode $certname",
+    default => "$common_options --mode $mode --dns-alt-names $dns_alt_names $certname",
   }
 
   Exec {
