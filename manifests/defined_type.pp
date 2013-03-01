@@ -1,16 +1,24 @@
-define puppet_certificate (
+define puppet_certificate::defined_type (
   $certname      = $title,
   $ssldir        = $::settings::ssldir,
-  $ca_location   = 'remote',
+  $ca_location   = undef,
   $mode          = 'agent',
   $dns_alt_names = undef,
-  $ca_server     = hiera('puppet_certificate::ca_server', undef),
+  $ca_server     = hiera('puppet_certificate::ca_server', $::settings::ca_server),
 ) {
+
+  # If local/remote ca_server wasn't explicitely specified, figure it out
+  if !$ca_location {
+    case $ca_server {
+      $::fqdn, $::hostname: { $use_location = 'local'  }
+      default: { $use_location = 'remote' }
+    }
+  }
 
   # Depending on whether the CA is local or remote, choose whether to sign
   # the new cert or just try to request it from the remote CA when it's time
   # to "get" the certificate.
-  case $ca_location {
+  case $use_location {
     'remote': {
       $get_mode    = $mode
       $get_command = 'find'
@@ -23,7 +31,7 @@ define puppet_certificate (
       }
     }
     default: {
-      fail("unsupported ca_location ${ca_location}")
+      fail("unsupported ca_location ${use_location}")
     }
   }
 
@@ -34,7 +42,7 @@ define puppet_certificate (
   $request_file      = "$ssldir/certificate_requests/$certname.pem"
   $key_file          = "$ssldir/private_keys/$certname.pem"
   $cert_file         = "$ssldir/certs/$certname.pem"
-  $common_options    = "--ca-location $ca_location $ca_server_options --certname $::clientcert"
+  $common_options    = "--ca-location $use_location $ca_server_options --certname $::clientcert"
   $get_options       = "$common_options --mode $get_mode $certname"
   $request_options   = $dns_alt_names ? {
     undef   => "$common_options --mode $mode $certname",
