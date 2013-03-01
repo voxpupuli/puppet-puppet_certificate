@@ -1,3 +1,5 @@
+require 'puppet/face'
+
 Puppet::Type.newtype(:puppet_certificate) do
   @doc = "Manage Puppet certificates"
   desc <<-EOT
@@ -6,14 +8,10 @@ Puppet::Type.newtype(:puppet_certificate) do
 
   ensurable
 
-  newproperty(:name) do
+  newparam(:name) do
     isnamevar
     isrequired
     desc "The certificate name"
-  end
-
-  newproperty(:dns_alt_names) do
-    desc "Alternate DNS names by which the certificate holder may be reached"
   end
 
   newparam(:ca_location) do
@@ -22,6 +20,10 @@ Puppet::Type.newtype(:puppet_certificate) do
 
   newparam(:ca_server) do
     desc "The certificate authority to use"
+  end
+
+  newproperty(:dns_alt_names) do
+    desc "Alternate DNS names by which the certificate holder may be reached"
   end
 
 end
