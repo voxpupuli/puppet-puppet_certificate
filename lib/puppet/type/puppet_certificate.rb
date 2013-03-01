@@ -22,7 +22,7 @@ Puppet::Type.newtype(:puppet_certificate) do
     desc "The certificate authority to use"
   end
 
-  newproperty(:dns_alt_names) do
+  newproperty(:dns_alt_names, :array_matching => :all) do
     desc "Alternate DNS names by which the certificate holder may be reached"
   end
 
