@@ -1,3 +1,5 @@
+require 'fileutils'
+
 Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   desc "Manage Puppet certificates using the certificate face"
 
@@ -15,6 +17,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   def generate_key
     unless key
       debug "generating new key for #{@resource[:name]}"
+      ensure_cadir if ca_location == 'local'
       Puppet::Face[:certificate, '0.0.1'].generate(@resource[:name], options)
     end
   end
@@ -53,6 +56,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
           :sign,
           opts.merge({:to => [@resource[:name]]})
         )
+        ensure_cadir
         cert = interface.sign(ca)
       end
 
@@ -61,6 +65,15 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         unable to sign certificate for #{@resource[:name]}
       EOL
 
+    end
+  end
+
+  def ensure_cadir
+    # This makes everything "just work" even on systems without a cadir yet
+    cadir = Puppet.settings[:cadir]
+    if not File.exists?(cadir)
+      FileUtils.mkdir_p(File.join(cadir, 'requests'), :mode => 0750)
+      FileUtils.chown_R(Puppet.settings[:user], Puppet.settings[:group], cadir)
     end
   end
 
