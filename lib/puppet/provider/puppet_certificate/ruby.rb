@@ -99,7 +99,6 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         else
           'remote'
         end
-        debug "ca_location is '#{@ca_location}'"
       end
     end
   end
