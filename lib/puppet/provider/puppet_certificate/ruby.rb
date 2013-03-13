@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'puppet/face'
 
 Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   desc "Manage Puppet certificates using the certificate face"
@@ -29,8 +30,29 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
   def retreive_certificate
     unless certificate
-      debug "retreiving certificate for #{@resource[:name]}"
-      cert = Puppet::Face[:certificate, '0.0.1'].find(@resource[:name], options)
+      timeout = 0
+      certname = @resource[:name]
+      debug "retreiving certificate for #{certname}"
+      if @resource[:waitforcert]
+        timeout = @resource[:waitforcert].to_i
+      end
+
+      cert = Puppet::Face[:certificate, '0.0.1'].find(certname, options)
+      return if cert
+
+      if timeout != 0
+        alert(<<-EOL.gsub(/\s+/, " ").strip)
+          Waiting #{timeout} seconds for #{certname} to be signed. Please
+          sign this certificate on the CA host or use the Request Manager
+          in the Puppet Enterprise Console.
+        EOL
+
+        while timeout > 0 && cert.nil?
+          cert = Puppet::Face[:certificate, '0.0.1'].find(certname, options)
+          sleep 1 # trying every second might be a bit too rapid?
+          timeout -= 1
+        end
+      end
 
       # If a cert didn't result then fail verbosely
       fail(<<-EOL.gsub(/\s+/, " ").strip) unless cert
@@ -38,7 +60,6 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         to sign this certificate on the CA host by running `puppet certificate
         sign #{@resource[:name]} --ca-location=local --mode=master`
       EOL
-
     end
   end
 
