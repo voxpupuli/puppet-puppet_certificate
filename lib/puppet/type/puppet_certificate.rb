@@ -1,5 +1,3 @@
-require 'puppet/face'
-
 Puppet::Type.newtype(:puppet_certificate) do
   @doc = "Manage Puppet certificates"
   desc <<-EOT
@@ -20,6 +18,10 @@ Puppet::Type.newtype(:puppet_certificate) do
 
   newparam(:ca_server) do
     desc "The certificate authority to use"
+  end
+
+  newparam(:waitforcert) do
+    desc "The amount of time to wait for the certificate to be signed"
   end
 
   newproperty(:dns_alt_names, :array_matching => :all) do
