@@ -1,31 +1,47 @@
 require 'fileutils'
 require 'puppet/face'
+require 'puppet/ssl/host'
+require 'puppet/ssl/certificate_request'
 
 Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   desc "Manage Puppet certificates using the certificate face"
 
   def create
     debug "create #{@resource[:name]}"
-    generate_key
-    submit_csr
+
+    # This will ensure the correct indirection is used when we go to submit
+    # csr's and things like that.
+    Puppet::SSL::Host.ca_location = ca_location.to_sym
+    host = Puppet::SSL::Host.new(@resource[:name])
+
+    # Generate all the local (key, CSR)
+    if not host.key
+      host.generate_key
+    end
+    if not host.certificate_request
+      dan_string = @resource[:dns_alt_names].to_a.join(',')
+      csr_args = dan_string.empty? ? {} : {:dns_alt_names => dan_string}
+      host.generate_certificate_request(csr_args)
+    end
+
+    # Submit the CSR
+    # TODO: make sure it's the *right* CSR (matches the key), don't just
+    #       blindly submit it. The terminus might return the contents of an
+    #       old CSR file that isn't actually paired with the private key.
+    begin
+      debug "submitting CSR for #{@resource[:name]}"
+      Puppet::SSL::CertificateRequest.indirection.save(host.certificate_request)
+    rescue Net::HTTPError => e
+      raise e unless e.data.is_a? Net::HTTPBadRequest
+      debug "recieved HTTP 400 submitting CSR (possibly a re-submission)"
+    end
+
+    # This can probably be refactored
     if ca_location == 'local'
       sign_certificate
     else
       retreive_certificate
     end
-  end
-
-  def generate_key
-    unless key
-      debug "generating new key for #{@resource[:name]}"
-      ensure_cadir if ca_location == 'local'
-      Puppet::Face[:certificate, '0.0.1'].generate(@resource[:name], options)
-    end
-  end
-
-  def submit_csr
-    # Not implemented. Maybe it would look something like
-    # Puppet::SSL::CertificateRequest.indirection.save(csr)
   end
 
   def retreive_certificate
