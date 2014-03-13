@@ -11,6 +11,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
     # This will ensure the correct indirection is used when we go to submit
     # csr's and things like that.
+    ensure_cadir if ca_location == 'local'
     Puppet::SSL::Host.ca_location = ca_location.to_sym
     host = Puppet::SSL::Host.new(@resource[:name])
 
