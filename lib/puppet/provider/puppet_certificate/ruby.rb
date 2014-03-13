@@ -19,7 +19,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     if not host.key
       host.generate_key
     end
-    if not host.certificate_request
+    if not existing_csr = host.certificate_request
       dan_string = @resource[:dns_alt_names].to_a.join(',')
       csr_args = dan_string.empty? ? {} : {:dns_alt_names => dan_string}
       host.generate_certificate_request(csr_args)
@@ -29,12 +29,14 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     # TODO: make sure it's the *right* CSR (matches the key), don't just
     #       blindly submit it. The terminus might return the contents of an
     #       old CSR file that isn't actually paired with the private key.
-    begin
-      debug "submitting CSR for #{@resource[:name]}"
-      Puppet::SSL::CertificateRequest.indirection.save(host.certificate_request)
-    rescue Net::HTTPError => e
-      raise e unless e.data.is_a? Net::HTTPBadRequest
-      debug "recieved HTTP 400 submitting CSR (possibly a re-submission)"
+    if existing_csr
+      begin
+        debug "submitting CSR for #{@resource[:name]}"
+        Puppet::SSL::CertificateRequest.indirection.save(host.certificate_request)
+      rescue Net::HTTPError => e
+        raise e unless e.data.is_a? Net::HTTPBadRequest
+        debug "recieved HTTP 400 submitting CSR (possibly a re-submission)"
+      end
     end
 
     # This can probably be refactored
