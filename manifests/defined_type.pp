@@ -1,3 +1,5 @@
+# Legacy defined type implementation for puppet_certificate management. Today
+# the native type puppet_certificate should be used instead.
 define puppet_certificate::defined_type (
   $certname      = $title,
   $ssldir        = $::settings::ssldir,
@@ -36,17 +38,17 @@ define puppet_certificate::defined_type (
   }
 
   $ca_server_options = $ca_server ? {
-    default => "--ca_server $ca_server",
+    default => "--ca_server ${ca_server}",
     undef   => '',
   }
-  $request_file      = "$ssldir/certificate_requests/$certname.pem"
-  $key_file          = "$ssldir/private_keys/$certname.pem"
-  $cert_file         = "$ssldir/certs/$certname.pem"
-  $common_options    = "--ca-location $use_location $ca_server_options --certname $::clientcert"
-  $get_options       = "$common_options --mode $get_mode $certname"
+  $request_file      = "${ssldir}/certificate_requests/${certname}.pem"
+  $key_file          = "${ssldir}/private_keys/${certname}.pem"
+  $cert_file         = "${ssldir}/certs/${certname}.pem"
+  $common_options    = "--ca-location ${use_location} ${ca_server_options} --certname ${::clientcert}"
+  $get_options       = "${common_options} --mode ${get_mode} ${certname}"
   $request_options   = $dns_alt_names ? {
-    undef   => "$common_options --mode $mode $certname",
-    default => "$common_options --mode $mode --dns-alt-names $dns_alt_names $certname",
+    undef   => "${common_options} --mode ${mode} ${certname}",
+    default => "${common_options} --mode ${mode} --dns-alt-names ${dns_alt_names} ${certname}",
   }
 
   Exec {
@@ -54,13 +56,13 @@ define puppet_certificate::defined_type (
     path      => '/opt/puppet/bin:/usr/bin:/bin:/usr/sbin:/sbin',
   }
 
-  exec { "cert_request_for_$title":
-    command => "puppet certificate generate $request_options",
-    unless  => "test -s $cert_file -o -s $key_file",
+  exec { "cert_request_for_${title}":
+    command => "puppet certificate generate ${request_options}",
+    unless  => "test -s ${cert_file} -o -s ${key_file}",
   } ->
-  exec { "get_cert_for_$title":
-    command  => "puppet certificate $get_command $get_options && test -s $cert_file",
-    unless   => "test -s $cert_file",
+  exec { "get_cert_for_${title}":
+    command  => "puppet certificate ${get_command} ${get_options} && test -s ${cert_file}",
+    unless   => "test -s ${cert_file}",
     provider => shell,
   }
 
