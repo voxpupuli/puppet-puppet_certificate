@@ -11,7 +11,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     if ca_location == 'local'
       sign_certificate
     else
-      retreive_certificate
+      retrieve_certificate
     end
   end
 
@@ -28,11 +28,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     # Puppet::SSL::CertificateRequest.indirection.save(csr)
   end
 
-  def retreive_certificate
+  def retrieve_certificate
     unless certificate
       timeout = 0
       certname = @resource[:name]
-      debug "retreiving certificate for #{certname}"
+      debug "retrieving certificate for #{certname}"
       if @resource[:waitforcert]
         timeout = @resource[:waitforcert].to_i
       end
@@ -56,7 +56,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
       # If a cert didn't result then fail verbosely
       fail(<<-EOL.gsub(/\s+/, " ").strip) unless cert
-        unable to retreive certificate for #{@resource[:name]}. You may need
+        unable to retrieve certificate for #{@resource[:name]}. You may need
         to sign this certificate on the CA host by running `puppet certificate
         sign #{@resource[:name]} --ca-location=local --mode=master`
       EOL
