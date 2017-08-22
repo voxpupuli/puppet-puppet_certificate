@@ -48,6 +48,14 @@ Puppet::Type.newtype(:puppet_certificate) do
     desc "The amount of time to wait for the certificate to be signed"
   end
 
+  newparam(:renewal_grace_period) do
+    desc "The number of days before expiration the certificate should be renewed"
+    munge do |v|
+        Integer(v)
+    end
+    defaultto(0)
+  end
+
   newproperty(:dns_alt_names, :array_matching => :all) do
     desc "Alternate DNS names by which the certificate holder may be reached"
   end

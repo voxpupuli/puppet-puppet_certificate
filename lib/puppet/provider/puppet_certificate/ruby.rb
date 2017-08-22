@@ -169,7 +169,10 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   end
 
   def is_valid?
-      certificate.not_after < Time.now
+      unless certificate.nil?
+          grace_time = @resource[:renewal_grace_period] * 60 * 60 * 24
+          certificate.content.not_after - grace_time > Time.now
+      end
   end
 
   def debug(msg)
