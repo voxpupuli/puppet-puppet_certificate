@@ -166,6 +166,10 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     end
   end
 
+  def is_valid?
+      certificate.not_after < Time.now
+  end
+
   def debug(msg)
     Puppet.debug "puppet_certificate: #{msg}"
   end
