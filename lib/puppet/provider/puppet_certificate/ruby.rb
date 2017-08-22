@@ -24,8 +24,10 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   end
 
   def submit_csr
-    # Not implemented. Maybe it would look something like
-    # Puppet::SSL::CertificateRequest.indirection.save(csr)
+      begin
+          Puppet::SSL::CertificateRequest.indirection.save(csr)
+      rescue ArgumentError
+      end
   end
 
   def retrieve_certificate
