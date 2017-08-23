@@ -19,6 +19,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     unless key
       debug "generating new key for #{@resource[:name]}"
       ensure_cadir if ca_location == 'local'
+      Puppet::SSL::Oids.register_puppet_oids
       Puppet::Face[:certificate, '0.0.1'].generate(@resource[:name], options)
     end
   end
