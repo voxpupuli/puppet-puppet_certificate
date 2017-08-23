@@ -103,8 +103,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
   def destroy
     Puppet::SSL::Key.indirection.destroy(@resource[:name])
+    @key = nil
     Puppet::SSL::Certificate.indirection.destroy(@resource[:name])
+    @certificate = nil
     Puppet::SSL::CertificateRequest.indirection.destroy(@resource[:name])
+    @csr = nil
   end
 
   def exists?
