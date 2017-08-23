@@ -25,10 +25,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   end
 
   def submit_csr
-      begin
-          Puppet::SSL::CertificateRequest.indirection.save(csr)
-      rescue ArgumentError
-      end
+      # Actually not required, generation submits CSR automatically
+      #begin
+      #    Puppet::SSL::CertificateRequest.indirection.save(csr)
+      #rescue ArgumentError
+      #end
   end
 
   def retrieve_certificate
@@ -169,6 +170,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         @csr = Puppet::SSL::CertificateRequest.new(@resource[:name])
         @csr.generate(key.content, options)
       end
+      @csr
     end
   end
 
