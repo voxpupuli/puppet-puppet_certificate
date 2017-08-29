@@ -108,7 +108,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
       https.ca_file = Puppet.settings[:localcacert]
       resp = https.start { |cx| cx.request(req) }
       if resp.code_type != Net::HTTPNoContent
-          warn "failed to clean certificate: #{resp.body}"
+          warning "failed to clean certificate: #{resp.body}"
       end
   end
 
