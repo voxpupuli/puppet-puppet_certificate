@@ -56,6 +56,12 @@ Puppet::Type.newtype(:puppet_certificate) do
     defaultto(0)
   end
 
+  newparam(:clean, :boolean => true) do
+    desc "Delete the certificate from the CA before removing it locally."
+
+    defaultto :false
+  end
+
   newproperty(:dns_alt_names, :array_matching => :all) do
     desc "Alternate DNS names by which the certificate holder may be reached"
   end
