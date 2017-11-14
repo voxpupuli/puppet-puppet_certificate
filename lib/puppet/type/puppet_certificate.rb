@@ -28,4 +28,8 @@ Puppet::Type.newtype(:puppet_certificate) do
     desc "Alternate DNS names by which the certificate holder may be reached"
   end
 
+  def refresh
+      provider.destroy
+      provider.create
+  end
 end
