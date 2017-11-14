@@ -62,12 +62,23 @@ Puppet::Type.newtype(:puppet_certificate) do
     defaultto :false
   end
 
+  newparam(:onrefresh) do
+    desc "If set to 'regenerate', a refresh event will cause the certificate to be destroyed and recreated."
+    newvalues(:regenerate, :nothing)
+
+    defaultto :nothing
+  end
+
   newproperty(:dns_alt_names, :array_matching => :all) do
     desc "Alternate DNS names by which the certificate holder may be reached"
   end
 
   def refresh
+    if [:present, :valid].include?(@parameters[:ensure].value) &&
+      @parameters[:onrefresh].value == :regenerate
+
       provider.destroy
       provider.create
+    end
   end
 end
