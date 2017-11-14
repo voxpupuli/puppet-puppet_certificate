@@ -11,7 +11,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     if ca_location == 'local'
       sign_certificate
     else
-      retreive_certificate
+      retrieve_certificate
     end
   end
 
@@ -19,20 +19,24 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     unless key
       debug "generating new key for #{@resource[:name]}"
       ensure_cadir if ca_location == 'local'
+      Puppet::SSL::Oids.register_puppet_oids
       Puppet::Face[:certificate, '0.0.1'].generate(@resource[:name], options)
     end
   end
 
   def submit_csr
-    # Not implemented. Maybe it would look something like
-    # Puppet::SSL::CertificateRequest.indirection.save(csr)
+      # Actually not required, generation submits CSR automatically
+      #begin
+      #    Puppet::SSL::CertificateRequest.indirection.save(csr)
+      #rescue ArgumentError
+      #end
   end
 
-  def retreive_certificate
+  def retrieve_certificate
     unless certificate
       timeout = 0
       certname = @resource[:name]
-      debug "retreiving certificate for #{certname}"
+      debug "retrieving certificate for #{certname}"
       if @resource[:waitforcert]
         timeout = @resource[:waitforcert].to_i
       end
@@ -56,7 +60,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
       # If a cert didn't result then fail verbosely
       fail(<<-EOL.gsub(/\s+/, " ").strip) unless cert
-        unable to retreive certificate for #{@resource[:name]}. You may need
+        unable to retrieve certificate for #{@resource[:name]}. You may need
         to sign this certificate on the CA host by running `puppet certificate
         sign #{@resource[:name]} --ca-location=local --mode=master`
       EOL
@@ -100,8 +104,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
   def destroy
     Puppet::SSL::Key.indirection.destroy(@resource[:name])
+    @key = nil
     Puppet::SSL::Certificate.indirection.destroy(@resource[:name])
+    @certificate = nil
     Puppet::SSL::CertificateRequest.indirection.destroy(@resource[:name])
+    @csr = nil
   end
 
   def exists?
@@ -163,7 +170,15 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         @csr = Puppet::SSL::CertificateRequest.new(@resource[:name])
         @csr.generate(key.content, options)
       end
+      @csr
     end
+  end
+
+  def is_valid?
+      unless certificate.nil?
+          grace_time = @resource[:renewal_grace_period] * 60 * 60 * 24
+          certificate.content.not_after - grace_time > Time.now
+      end
   end
 
   def debug(msg)
