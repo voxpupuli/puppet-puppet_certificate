@@ -110,4 +110,5 @@ puppet_certificate { $certname:
 ## Contributors
 
 * Reid Vandewiele
+* Branan Riley
 * Raphaël Pinson
