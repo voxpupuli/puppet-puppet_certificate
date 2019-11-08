@@ -20,7 +20,8 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
       debug "generating new key for #{@resource[:name]}"
       ensure_cadir if ca_location == 'local'
       Puppet::SSL::Oids.register_puppet_oids
-      Puppet::Face[:certificate, '0.0.1'].generate(@resource[:name], options)
+      host = Puppet::SSL::Host.new(@resource[:name])
+      host.generate_certificate_request(:dns_alt_names => options[:dns_alt_names])
     end
   end
 
@@ -41,8 +42,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         timeout = @resource[:waitforcert].to_i
       end
 
-      cert = Puppet::Face[:certificate, '0.0.1'].find(certname, options)
-      return if cert
+      return if get_certificate(certname)
 
       if timeout != 0
         alert(<<-EOL.gsub(/\s+/, " ").strip)
@@ -52,7 +52,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         EOL
 
         while timeout > 0 && cert.nil?
-          cert = Puppet::Face[:certificate, '0.0.1'].find(certname, options)
+          cert = get_certificate(certname)
           sleep 1 # trying every second might be a bit too rapid?
           timeout -= 1
         end
@@ -70,20 +70,15 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   def sign_certificate
     unless certificate
       debug "signing certificate for #{@resource[:name]}"
-      begin
-        opts = options.merge(:allow_dns_alt_names => true)
-        cert = Puppet::Face[:certificate, '0.0.1'].sign(@resource[:name], opts)
-      rescue Exception => e
-        raise e unless e.message.match(/not configured as a certificate auth/)
-        # The face fails us. Do it oldskool.
-        ca = Puppet::SSL::CertificateAuthority.new
-        interface = Puppet::SSL::CertificateAuthority::Interface.new(
-          :sign,
-          opts.merge({:to => [@resource[:name]]})
-        )
-        ensure_cadir
-        cert = interface.sign(ca)
-      end
+      opts = options.merge(:allow_dns_alt_names => true)
+      # Do it oldskool.
+      ca = Puppet::SSL::CertificateAuthority.new
+      interface = Puppet::SSL::CertificateAuthority::Interface.new(
+        :sign,
+        opts.merge({:to => [@resource[:name]]})
+      )
+      ensure_cadir
+      cert = interface.sign(ca)
 
       # If a cert didn't result then fail verbosely
       fail(<<-EOL.gsub(/\s+/, " ").strip) unless cert
@@ -199,8 +194,57 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
       end
   end
 
+  # Create/return a store that uses our SSL info to validate
+  # connections.
+  def ssl_store(purpose = OpenSSL::X509::PURPOSE_ANY)
+    if @ssl_store.nil?
+      @ssl_store = build_ssl_store(purpose)
+    end
+    @ssl_store
+  end
+
+  def build_ssl_store(purpose=OpenSSL::X509::PURPOSE_ANY)
+    store = OpenSSL::X509::Store.new
+    store.purpose = purpose
+
+    # Use the file path here, because we don't want to cause
+    # a lookup in the middle of setting our ssl connection.
+    store.add_file(Puppet.settings[:localcacert])
+
+    if use_crl?
+      if !Puppet::FileSystem.exist?(crl_path)
+        download_and_save_crl_bundle(store)
+      end
+
+      crls = load_crls(crl_path)
+
+      flags = OpenSSL::X509::V_FLAG_CRL_CHECK
+      if use_crl_chain?
+        flags |= OpenSSL::X509::V_FLAG_CRL_CHECK_ALL
+      end
+
+      store.flags = flags
+      crls.each {|crl| store.add_crl(crl) }
+    end
+    store
+  end
+
+  def use_crl?
+    !!@crl_usage
+  end
+
+  def use_crl_chain?
+    @crl_usage == true || @crl_usage == :chain
+  end
+
+  def get_certificate(certname)
+    Puppet::Rest::Routes.get_certificate(
+      certname,
+      Puppet::SSL::SSLContext.new(store: ssl_store)
+    )
+  end
+
   def debug(msg)
     Puppet.debug "puppet_certificate: #{msg}"
   end
-
 end
