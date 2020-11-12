@@ -43,10 +43,10 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         timeout = @resource[:waitforcert].to_i
       end
 
-      return if get_certificate(certname)
+      cert = get_certificate(certname)
 
-      if timeout != 0
-        alert(<<-EOL.gsub(/\s+/, " ").strip)
+      if cert.nil? && timeout != 0
+        notice(<<-EOL.gsub(/\s+/, " ").strip)
           Waiting #{timeout} seconds for #{certname} to be signed. Please
           sign this certificate on the CA host or use the Request Manager
           in the Puppet Enterprise Console.
