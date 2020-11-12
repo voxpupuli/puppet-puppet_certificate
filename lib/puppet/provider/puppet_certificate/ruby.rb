@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'puppet/face'
+require 'puppet/ssl/certificate'
 
 Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   desc "Manage Puppet certificates using the certificate face"
@@ -238,10 +239,13 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   end
 
   def get_certificate(certname)
-    Puppet::Rest::Routes.get_certificate(
-      certname,
-      Puppet::SSL::SSLContext.new(store: ssl_store)
-    )
+    return nil unless @certificate = Puppet::SSL::Certificate.indirection.find(certname)
+    @certificate
+    # Puppet::Rest no longer in Puppet 5.5+
+    # Puppet::Rest::Routes.get_certificate(
+    #   certname,
+    #   Puppet::SSL::SSLContext.new(store: ssl_store)
+    # )
   end
 
   def debug(msg)
