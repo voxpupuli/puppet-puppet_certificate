@@ -7,8 +7,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
   def create
     debug "create #{@resource[:name]}"
-    generate_key
-    submit_csr
+    generate_csr
     if ca_location == 'local'
       sign_certificate
     else
@@ -16,7 +15,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     end
   end
 
-  def generate_key
+  def generate_csr
     unless key
       debug "generating new key for #{@resource[:name]}"
       ensure_cadir if ca_location == 'local'
@@ -26,16 +25,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     end
   end
 
-  def submit_csr
-      # Actually not required, generation submits CSR automatically
-      #begin
-      #    Puppet::SSL::CertificateRequest.indirection.save(csr)
-      #rescue ArgumentError
-      #end
-  end
-
   def retrieve_certificate
     unless certificate
+      @machine = Puppet::SSL::StateMachine.new
+      ssl_context = @machine.ensure_ca_certificates
+
       timeout = 0
       certname = @resource[:name]
       debug "retrieving certificate for #{certname}"
@@ -43,7 +37,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         timeout = @resource[:waitforcert].to_i
       end
 
-      cert = get_certificate(certname)
+      cert = download_cert(ssl_context)
 
       if cert.nil? && timeout != 0
         notice(<<-EOL.gsub(/\s+/, " ").strip)
@@ -53,8 +47,8 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         EOL
 
         while timeout > 0 && cert.nil?
-          cert = get_certificate(certname)
-          sleep 1 # trying every second might be a bit too rapid?
+          cert = download_cert(ssl_context)
+          sleep 2 # trying every second might be a bit too rapid?
           timeout -= 1
         end
       end
@@ -65,6 +59,17 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
         to sign this certificate on the CA host by running `puppet certificate
         sign #{@resource[:name]} --ca-location=local --mode=master`
       EOL
+
+      @ssl_provider = Puppet::SSL::SSLProvider.new
+      @cert_provider = Puppet::X509::CertProvider.new
+      @ssl_provider.create_context(
+        cacerts: ssl_context.cacerts,
+        crls: ssl_context.crls,
+        private_key: key,
+        client_cert: cert
+      )
+      @cert_provider.save_client_cert(@resource[:name], cert)
+      @cert_provider.delete_request(@resource[:name])
     end
   end
 
@@ -170,7 +175,8 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   end
 
   def key
-    @key ||= Puppet::SSL::Key.indirection.find(@resource[:name])
+    @cert_provider = Puppet::X509::CertProvider.new
+    @key ||= @cert_provider.load_private_key(@resource[:name])
   end
 
   def certificate
@@ -238,17 +244,33 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     @crl_usage == true || @crl_usage == :chain
   end
 
-  def get_certificate(certname)
-    return nil unless @certificate = Puppet::SSL::Certificate.indirection.find(certname)
-    @certificate
-    # Puppet::Rest no longer in Puppet 5.5+
-    # Puppet::Rest::Routes.get_certificate(
-    #   certname,
-    #   Puppet::SSL::SSLContext.new(store: ssl_store)
-    # )
+  def download_cert(ssl_context)
+    route = create_route(ssl_context)
+    Puppet.info _("Downloading certificate '%{name}' from %{url}") % { name: @resource[:name], url: route.url }
+    _, x509 = route.get_certificate(@resource[:name], ssl_context: ssl_context)
+    cert = OpenSSL::X509::Certificate.new(x509)
+    Puppet.notice _("Downloaded certificate '%{name}' with fingerprint %{fingerprint}") % { name: @resource[:name], fingerprint: fingerprint(cert) }
+    cert
+  rescue Puppet::HTTP::ResponseError => e
+    if e.response.code == 404
+      return nil
+    else
+      raise Puppet::Error.new(_("Failed to download certificate: %{message}") % { message: e.message }, e)
+    end
+  rescue => e
+    raise Puppet::Error.new(_("Failed to download certificate: %{message}") % { message: e.message }, e)
   end
 
   def debug(msg)
-    Puppet.debug "puppet_certificate: #{msg}"
+    debug "puppet_certificate: #{msg}"
   end
+
+  def fingerprint(cert)
+    Puppet::SSL::Digest.new(nil, cert.to_der)
+  end
+
+  def create_route(ssl_context)
+    Puppet.runtime[:http].create_session.route_to(:ca, ssl_context: ssl_context)
+  end
+
 end
