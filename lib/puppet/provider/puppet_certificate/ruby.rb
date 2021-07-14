@@ -177,6 +177,8 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   def key
     @cert_provider = Puppet::X509::CertProvider.new
     @key ||= @cert_provider.load_private_key(@resource[:name])
+  rescue => e
+    @key ||= Puppet::SSL::Key.indirection.find(@resource[:name])
   end
 
   def certificate
@@ -242,6 +244,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
   def use_crl_chain?
     @crl_usage == true || @crl_usage == :chain
+  end
+
+  def get_certificate(certname)
+    return nil unless @certificate = Puppet::SSL::Certificate.indirection.find(certname)
+    @certificate
   end
 
   def download_cert(ssl_context)
