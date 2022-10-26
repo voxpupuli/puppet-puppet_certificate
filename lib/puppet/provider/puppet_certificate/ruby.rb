@@ -262,7 +262,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   end
 
   def debug(msg)
-    debug "puppet_certificate: #{msg}"
+    Puppet.debug "puppet_certificate: #{msg}"
   end
 
   def fingerprint(cert)
