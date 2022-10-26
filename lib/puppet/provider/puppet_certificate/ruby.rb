@@ -177,7 +177,11 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
   def key
     @cert_provider = Puppet::X509::CertProvider.new
     @key ||= @cert_provider.load_private_key(@resource[:name])
-  rescue => e
+  rescue NameError
+    # Older versions of Puppet (before 6.4?) don't have Puppet::X509
+    # so use the old way of getting the key.
+    # Not tested, but presumably this means versions 6.x before 6.4
+    # aren't going to work right now??
     @key ||= Puppet::SSL::Key.indirection.find(@resource[:name])
   end
 
@@ -244,11 +248,6 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
 
   def use_crl_chain?
     @crl_usage == true || @crl_usage == :chain
-  end
-
-  def get_certificate(certname)
-    return nil unless @certificate = Puppet::SSL::Certificate.indirection.find(certname)
-    @certificate
   end
 
   def download_cert(ssl_context)
