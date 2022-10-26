@@ -19,7 +19,7 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     unless key
       debug "generating new key for #{@resource[:name]}"
       ensure_cadir if ca_location == 'local'
-      Puppet::SSL::Oids.register_puppet_oids
+      Puppet::SSL::Oids.register_puppet_oids if Puppet::SSL::Oids.respond_to?('register_puppet_oids')
       host = Puppet::SSL::Host.new(@resource[:name])
       host.generate_certificate_request(:dns_alt_names => options[:dns_alt_names])
     end
