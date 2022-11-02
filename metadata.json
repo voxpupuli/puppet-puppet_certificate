@@ -2,7 +2,7 @@
   "name": "reidmv-puppet_certificate",
   "version": "0.0.3",
   "author": "Reid Vandewiele",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "summary": "Puppet provider ensuring puppet certificates",
   "source": "https://github.com/reidmv/puppet-module-puppet_certificate",
   "project_page": "https://github.com/reidmv/puppet-module-puppet_certificate",
