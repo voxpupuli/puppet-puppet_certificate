@@ -1,3 +1,4 @@
+# rubocop:disable all
 require 'fileutils'
 require 'puppet/face'
 require 'puppet/ssl/certificate'
