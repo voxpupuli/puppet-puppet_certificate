@@ -1,4 +1,13 @@
-# Puppet Certificate #
+# Puppet Certificate
+
+[![Build Status](https://github.com/voxpupuli/puppet-puppet_certificate/workflows/CI/badge.svg)](https://github.com/voxpupuli/puppet-puppet_certificate/actions?query=workflow%3ACI)
+[![Release](https://github.com/voxpupuli/puppet-puppet_certificate/actions/workflows/release.yml/badge.svg)](https://github.com/voxpupuli/puppet-puppet_certificate/actions/workflows/release.yml)
+[![Puppet Forge](https://img.shields.io/puppetforge/v/puppet/puppet_certificate.svg)](https://forge.puppetlabs.com/puppet/puppet_certificate)
+[![Puppet Forge - downloads](https://img.shields.io/puppetforge/dt/puppet/puppet_certificate.svg)](https://forge.puppetlabs.com/puppet/puppet_certificate)
+[![Puppet Forge - endorsement](https://img.shields.io/puppetforge/e/puppet/puppet_certificate.svg)](https://forge.puppetlabs.com/puppet/puppet_certificate)
+[![Puppet Forge - scores](https://img.shields.io/puppetforge/f/puppet/puppet_certificate.svg)](https://forge.puppetlabs.com/puppet/puppet_certificate)
+[![Apache-2 License](https://img.shields.io/github/license/voxpupuli/puppet-puppet_certificate.svg)](LICENSE)
+[![Donated by Reid Vandewiele](https://img.shields.io/badge/donated%20by-Reid%20Vandewiele-fb7047.svg)](#transfer-notice)
 
 ## Summary
 
@@ -27,7 +36,7 @@ puppet_certificate { 'oldcert.example.com':
 ### Refresh
 
 When refreshed (notify, subscribe) a puppet\_certificate resource will destroy
-and re-create the managed certifiate. This enables changes to related resources
+and re-create the managed certificate. This enables changes to related resources
 to trigger a certificate to be regenerated.
 
 To enable this functionality, you *must* set the onrefresh parameter to
@@ -112,3 +121,12 @@ puppet_certificate { $certname:
 * Reid Vandewiele
 * Branan Riley
 * Raphaël Pinson
+
+## Transfer Notice
+
+This module was originally authored by [Reid Vandewiele](http://github.com/reidmv).
+The maintainer preferred that [Vox Pupuli](https://voxpupuli.org/) take ownership of the module for future improvement and maintenance.
+
+Existing pull requests and issues were transferred over.
+Please fork and continue to contribute [here](https://github.com/voxpupuli/puppet-puppet_certificate) instead of the
+module's original [home](https://github.com/reidmv/puppet-puppet_certificate).
