@@ -165,8 +165,15 @@ Puppet::Type.type(:puppet_certificate).provide(:ruby) do
     https.key = OpenSSL::PKey::RSA.new(File.read(Puppet.settings[:hostprivkey]))
     https.verify_mode = OpenSSL::SSL::VERIFY_PEER
     https.ca_file = Puppet.settings[:localcacert]
-    resp = https.start { |cx| cx.request(req) }
-    warning "failed to clean certificate: #{resp.body}" if resp.code_type != Net::HTTPNoContent
+    begin
+      resp = https.start { |cx| cx.request(req) }
+      warning "failed to clean certificate: #{resp.body}" if resp.code_type != Net::HTTPNoContent
+    rescue OpenSSL::SSL::SSLError => e
+      raise unless e.message.include?('certificate unknown')
+
+      # Something has already removed this certificate from the CA, so connecting to it is failing with an SSLError
+      warning "failed to clean certificate: #{e.inspect}"
+    end
   end
 
   def destroy
