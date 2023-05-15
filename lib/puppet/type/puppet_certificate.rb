@@ -1,3 +1,4 @@
+# rubocop:disable all
 Puppet::Type.newtype(:puppet_certificate) do
   @doc = 'Manage Puppet certificates'
   desc <<-EOT
