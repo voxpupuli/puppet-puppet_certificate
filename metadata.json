@@ -1,6 +1,6 @@
 {
   "name": "puppet-puppet_certificate",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "author": "Vox Pupuli",
   "license": "Apache-2.0",
   "summary": "Puppet provider ensuring puppet certificates",
