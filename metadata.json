@@ -1,13 +1,18 @@
 {
   "name": "puppet-puppet_certificate",
-  "version": "1.0.0",
+  "version": "1.0.1-rc0",
   "author": "Vox Pupuli",
   "license": "Apache-2.0",
   "summary": "Puppet provider ensuring puppet certificates",
   "source": "https://github.com/voxpupuli/puppet-puppet_certificate",
   "project_page": "https://github.com/voxpupuli/puppet-puppet_certificate",
-  "tags": ["puppet", "certificate"],
-  "dependencies": [],
+  "tags": [
+    "puppet",
+    "certificate"
+  ],
+  "dependencies": [
+
+  ],
   "requirements": [
     {
       "name": "puppet",
@@ -15,13 +20,29 @@
     }
   ],
   "operatingsystem_support": [
-    { "operatingsystem": "RedHat"  },
-    { "operatingsystem": "Windows" },
-    { "operatingsystem": "Debian"  },
-    { "operatingsystem": "Ubuntu"  },
-    { "operatingsystem": "OS X"    },
-    { "operatingsystem": "Solaris" },
-    { "operatingsystem": "SLES"    },
-    { "operatingsystem": "AIX"     }
+    {
+      "operatingsystem": "RedHat"
+    },
+    {
+      "operatingsystem": "Windows"
+    },
+    {
+      "operatingsystem": "Debian"
+    },
+    {
+      "operatingsystem": "Ubuntu"
+    },
+    {
+      "operatingsystem": "OS X"
+    },
+    {
+      "operatingsystem": "Solaris"
+    },
+    {
+      "operatingsystem": "SLES"
+    },
+    {
+      "operatingsystem": "AIX"
+    }
   ]
 }
