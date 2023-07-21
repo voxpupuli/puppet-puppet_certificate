@@ -105,6 +105,35 @@ Example auth.conf rule:
 }
 ```
 
+Puppet Enterprise already has a rule for this API. You cannot have multiple
+blocks in auth.conf for the same path. Therefor you need to patch
+`/opt/puppetlabs/puppet/modules/puppet_enterprise/manifests/profile/certificate_authority.pp`
+
+```
+# git diff --no-index /tmp/certificate_authority.pp
+/opt/puppetlabs/puppet/modules/puppet_enterprise/manifests/profile/certificate_authority.pp
+diff --git a/tmp/certificate_authority.pp
+b/opt/puppetlabs/puppet/modules/puppet_enterprise/manifests/profile/certificate_authority.pp
+index ba4de6b..4c71dd5 100644
+--- a/tmp/certificate_authority.pp
++++ b/opt/puppetlabs/puppet/modules/puppet_enterprise/manifests/profile/certificate_authority.pp
+@@ -99,10 +99,10 @@ class puppet_enterprise::profile::certificate_authority (
+
+   pe_puppet_authorization::rule { 'puppetlabs certificate status':
+     ensure               => present,
+-    match_request_path   => '/puppet-ca/v1/certificate_status/',
+-    match_request_type   => 'path',
++    match_request_path   => '^/puppet-ca/v1/certificate_status/([^/]+)?$',
++    match_request_type   => 'regex',
+     match_request_method => ['get','put','delete'],
+-    allow                => $_client_allowlist << $ca_cli_extension,
++    allow                => ['$1', $_client_allowlist].flatten <<
+$ca_cli_extension,
+     sort_order           => 500,
+     path                 => '/etc/puppetlabs/puppetserver/conf.d/auth.conf',
+     notify               => Service['pe-puppetserver'],
+```
+
 ```puppet
 puppet_certificate { $certname:
   ensure               => valid,
