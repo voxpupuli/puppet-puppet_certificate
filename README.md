@@ -109,7 +109,7 @@ Puppet Enterprise already has a rule for this API. You cannot have multiple
 blocks in auth.conf for the same path. Therefor you need to patch
 `/opt/puppetlabs/puppet/modules/puppet_enterprise/manifests/profile/certificate_authority.pp`
 
-```
+```diff
 # git diff --no-index /tmp/certificate_authority.pp
 /opt/puppetlabs/puppet/modules/puppet_enterprise/manifests/profile/certificate_authority.pp
 diff --git a/tmp/certificate_authority.pp
