@@ -127,8 +127,7 @@ index ba4de6b..4c71dd5 100644
 +    match_request_type   => 'regex',
      match_request_method => ['get','put','delete'],
 -    allow                => $_client_allowlist << $ca_cli_extension,
-+    allow                => ['$1', $_client_allowlist].flatten <<
-$ca_cli_extension,
++    allow                => ['$1', $_client_allowlist].flatten << $ca_cli_extension,
      sort_order           => 500,
      path                 => '/etc/puppetlabs/puppetserver/conf.d/auth.conf',
      notify               => Service['pe-puppetserver'],
