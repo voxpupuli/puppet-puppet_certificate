@@ -52,9 +52,9 @@ file { '/etc/puppetlabs/puppet/csr_attributes.yaml':
   group   => 'root',
   mode    => '0440',
   content => epp('example/csr_attributes.yaml.epp'),
-} ~>
+}
 
-puppet_certificate { $certname:
+~> puppet_certificate { $certname:
   ensure      => present,
   waitforcert => 60,
   onrefresh   => regenerate,
