@@ -4,7 +4,17 @@ All notable changes to this project will be documented in this file.
 Each new release typically also includes the latest modulesync defaults.
 These should not affect the functionality of the module.
 
-## [v1.0.0](https://github.com/voxpupuli/puppet-puppet_certificate/tree/v1.0.0) (2023-05-19)
+## [v1.1.0](https://github.com/voxpupuli/puppet-puppet_certificate/tree/v1.1.0) (2024-02-01)
+
+[Full Changelog](https://github.com/voxpupuli/puppet-puppet_certificate/compare/v1.0.0...v1.1.0)
+
+**Implemented enhancements:**
+
+- README.md: Update code example [\#23](https://github.com/voxpupuli/puppet-puppet_certificate/pull/23) ([bastelfreak](https://github.com/bastelfreak))
+- Document PE workaround for auth.conf [\#19](https://github.com/voxpupuli/puppet-puppet_certificate/pull/19) ([bastelfreak](https://github.com/bastelfreak))
+- Add Puppet 8 support [\#17](https://github.com/voxpupuli/puppet-puppet_certificate/pull/17) ([bastelfreak](https://github.com/bastelfreak))
+
+## [v1.0.0](https://github.com/voxpupuli/puppet-puppet_certificate/tree/v1.0.0) (2023-05-24)
 
 [Full Changelog](https://github.com/voxpupuli/puppet-puppet_certificate/compare/0.1.0...v1.0.0)
 
