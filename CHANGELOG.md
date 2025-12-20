@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 Each new release typically also includes the latest modulesync defaults.
 These should not affect the functionality of the module.
 
+## [v2.0.0](https://github.com/voxpupuli/puppet-puppet_certificate/tree/v2.0.0) (2025-12-20)
+
+[Full Changelog](https://github.com/voxpupuli/puppet-puppet_certificate/compare/v1.1.0...v2.0.0)
+
+**Breaking changes:**
+
+- Drop puppet, update openvox minimum version to 8.19 [\#41](https://github.com/voxpupuli/puppet-puppet_certificate/pull/41) ([TheMeier](https://github.com/TheMeier))
+
+**Implemented enhancements:**
+
+- metadata.json: Add OpenVox [\#37](https://github.com/voxpupuli/puppet-puppet_certificate/pull/37) ([jstraw](https://github.com/jstraw))
+
 ## [v1.1.0](https://github.com/voxpupuli/puppet-puppet_certificate/tree/v1.1.0) (2024-02-01)
 
 [Full Changelog](https://github.com/voxpupuli/puppet-puppet_certificate/compare/v1.0.0...v1.1.0)
