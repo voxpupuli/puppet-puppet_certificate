@@ -133,6 +133,43 @@ index ba4de6b..4c71dd5 100644
      notify               => Service['pe-puppetserver'],
 ```
 
+For Pupppet Community/OpenVox you have to adjust the *puppetlabs cert status* endpoint to prevent same path.
+
+```
+{
+    name: "Allow nodes to delete their own certificates",
+    match-request: {
+        path: "^/puppet-ca/v1/certificate(_status|_request)?/([^/]+)$",
+        type: regex,
+        method: [delete]
+    },
+    allow: [
+        "$2",
+        {
+          extensions: {
+            pp_cli_auth: "true"
+          }
+        }
+    ],
+    sort-order: 500
+},
+{
+    # Allow the CA CLI to access the certificate_status endpoint
+    match-request: {
+        path: "/puppet-ca/v1/certificate_status",
+        type: path,
+        method: [get, put]
+    }
+    allow: {
+          extensions: {
+            pp_cli_auth: "true"
+          }
+        }
+    sort-order: 500
+    name: "puppetlabs cert status"
+},
+```
+
 ```puppet
 puppet_certificate { $certname:
   ensure               => valid,
